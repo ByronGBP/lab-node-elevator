@@ -3,7 +3,7 @@ class Elevator {
   constructor(){
     this.floor = 0;
     this.MAXFLOOR = 10;
-    this.requests = [];
+    this.requests = new Set();
 
     this.direction = 0;
     this.nextFloor = 0;
@@ -15,8 +15,9 @@ class Elevator {
 
   start() {
     if (!this.timer){
-      this.nextFloor = this.requests.shift();
-      console.log(this.nextFloor);
+      var it = this.requests[Symbol.iterator]()
+      this.nextFloor = it.next().value;
+      this.requests.delete(this.nextFloor);
       this.timer = setInterval(() => this.update(), 1000);
     }
   }
@@ -45,8 +46,10 @@ class Elevator {
        }
        else {
          this._checkPassengers();
-         if (this.requests.length > 0){
-           this.nextFloor = this.requests.shift();
+         if (this.requests.size > 0){
+           var it = this.requests[Symbol.iterator]()
+           this.nextFloor = it.next().value;
+           this.requests.delete(this.nextFloor);
          }
          else{
            this.stop();
@@ -77,12 +80,13 @@ class Elevator {
     this.passengers.push(person);
     this.waitingList.splice(i, 1);
     console.log(`${person.name} just enter!`);
-    this.requests.push(person.destinationFloor);
+    this.requests.add(person.destinationFloor);
    }
 
   _passengersLeave(person, i) {
     console.log(`${person.name} just leave!`);
     this.passengers.splice(i,1);
+
   }
 
   floorUp() {
@@ -99,7 +103,7 @@ class Elevator {
 
   call(person) {
     this.waitingList.push(person);
-    this.requests.push(person.originFloor);
+    this.requests.add(person.originFloor);
     if(!this.timer){
       this.start();
     }
